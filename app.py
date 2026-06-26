@@ -4,27 +4,26 @@ import streamlit as st
 st.set_page_config(page_title="陳教授的系統分析儀", layout="centered")
 
 st.title("🧪 陳教授的系統分析儀：動態環境版")
-st.markdown("結合物質平衡與動力學參數，精確模擬生物反應器運作狀態。")
+st.markdown("以物料平衡為核心，精確調控生物反應器運作參數。")
 st.sidebar.image("image.png", use_container_width=True)
 
-# 1. 專業參數設定 (kg/kg)
-# 落葉: C=0.45, N=0.006 | 廚餘: C=0.10, N=0.025
+# 專業成分參數 (kg/kg)
 C_B, N_B = 0.45, 0.006
 C_G, N_G = 0.10, 0.025
 
-# 2. 輸入面板
+# 1. 輸入面板 (調整 step=0.1 以精確至小數點一位)
 st.header("⚙️ 模擬參數設置")
-brown_w = st.slider("褐色資材 (落葉) [kg]", 0.0, 100.0, 30.0)
+brown_w = st.slider("褐色資材 (落葉) [kg]", 0.0, 100.0, 30.0, step=0.1)
 st.caption(f"💡 資訊：含碳 {brown_w * C_B:.2f}kg, 含氮 {brown_w * N_B:.3f}kg")
 
-green_w = st.slider("綠色資材 (廚餘) [kg]", 0.0, 100.0, 10.0)
+green_w = st.slider("綠色資材 (廚餘) [kg]", 0.0, 100.0, 10.0, step=0.1)
 st.caption(f"💡 資訊：含碳 {green_w * C_G:.2f}kg, 含氮 {green_w * N_G:.3f}kg")
 
 st.markdown("---")
-moisture = st.slider("環境水分含量 (%)", 20, 90, 60, help="理想區間 55-65%")
-temp = st.slider("環境溫度 (°C)", 10, 60, 30, help="理想區間 25-35°C")
+moisture = st.slider("環境水分含量 (%)", 20.0, 90.0, 60.0, step=0.1, help="理想區間 55-65%")
+temp = st.slider("環境溫度 (°C)", 10.0, 60.0, 30.0, step=0.1, help="理想區間 25-35°C")
 
-# 3. 系統工程邏輯計算 (物質平衡 + 動力學修正)
+# 2. 系統工程邏輯計算
 total_C = (brown_w * C_B) + (green_w * C_G)
 total_N = (brown_w * N_B) + (green_w * N_G)
 cn_ratio = total_C / total_N if total_N > 0 else 100.0
@@ -36,7 +35,7 @@ efficiency = ((1.0 if 25 <= cn_ratio <= 35 else 0.5) * 0.5 +
               max(0, f_water) * 0.3 + 
               max(0, f_temp) * 0.2) * 100
 
-# 4. 分析結果輸出
+# 3. 分析結果輸出
 if st.button("執行系統動力學分析"):
     st.markdown("---")
     c1, c2, c3 = st.columns(3)
