@@ -1,51 +1,55 @@
 import streamlit as st
 
 # 網頁設定
-st.set_page_config(page_title="陳教授的生物反應器模擬器", layout="centered")
+st.set_page_config(page_title="陳教授的物質平衡模擬器", layout="centered")
 
-st.title("🧪 陳教授的生物反應器模擬器")
-st.markdown("將物料平衡、水力負荷與溫度動力學整合為一體的系統工程分析。")
+st.title("🧪 陳教授的系統分析儀：成分透明化版")
+st.markdown("透過物料平衡，解構廢棄物的化學成分，精確掌控系統反應。")
 st.sidebar.image("image.png", use_container_width=True)
 
-# 1. 輸入面板
-st.header("⚙️ 反應器操作參數設定")
-brown_w = st.slider("褐色資材重量 (落葉) [kg]", 0.0, 100.0, 30.0)
-green_w = st.slider("綠色資材重量 (廚餘) [kg]", 0.0, 100.0, 10.0)
-moisture = st.slider("系統水分含量 (%)", 20, 90, 60, help="理想值 55-65%")
-temp = st.slider("反應器溫度 (°C)", 10, 60, 30, help="理想值 25-35°C")
+# 專業成分參數 (kg/kg)
+# 落葉: C=0.45, N=0.006 (碳45%, 氮0.6%)
+# 廚餘: C=0.10, N=0.025 (碳10%, 氮2.5%)
+C_B, N_B = 0.45, 0.006
+C_G, N_G = 0.025, 0.025  # 修正：廚餘碳量一般較低，氮量較高
 
-# 2. 專業計算邏輯
-C_B, N_B = 45.0, 0.6
-C_G, N_G = 10.0, 2.5
+# 1. 輸入面板
+st.header("⚙️ 模擬參數設置 (公斤為單位)")
+
+# 褐色資材顯示標註
+brown_w = st.slider("褐色資材重量 (落葉) [kg]", 0.0, 100.0, 30.0)
+st.caption(f"📍 資訊：每 1kg 落葉含 {C_B}kg 碳 與 {N_B}kg 氮")
+
+# 綠色資材顯示標註
+green_w = st.slider("綠色資材重量 (廚餘) [kg]", 0.0, 100.0, 10.0)
+st.caption(f"📍 資訊：每 1kg 廚餘含 {C_G}kg 碳 與 {N_G}kg 氮")
+
+# 2. 物質平衡計算
 total_C = (brown_w * C_B) + (green_w * C_G)
 total_N = (brown_w * N_B) + (green_w * N_G)
 cn_ratio = total_C / total_N if total_N > 0 else 100.0
 
-# 3. 系統效率評分 (結合多變數影響)
-# 理想區間得分
+# 3. 系統效率得分 (簡化模型)
 cn_score = 1.0 if 25 <= cn_ratio <= 35 else 0.5
-moisture_score = 1.0 if 55 <= moisture <= 65 else (0.7 if 40 <= moisture <= 80 else 0.3)
-temp_score = 1.0 if 25 <= temp <= 35 else (0.8 if 20 <= temp <= 45 else 0.4)
-
-efficiency = (cn_score * 0.5 + moisture_score * 0.3 + temp_score * 0.2) * 100
+efficiency = cn_score * 100
 
 # 4. 分析結果
-if st.button("啟動系統分析"):
+if st.button("執行物質平衡分析"):
     st.markdown("---")
-    col1, col2 = st.columns(2)
-    col1.metric("計算 C/N 比", f"{cn_ratio:.2f}")
-    col2.metric("預估轉化效率", f"{efficiency:.0f}%")
+    st.metric("計算 C/N 比", f"{cn_ratio:.2f}")
     
-    st.progress(efficiency / 100)
+    # 顯示總量統計
+    c1, c2 = st.columns(2)
+    c1.metric("系統總碳量", f"{total_C:.2f} kg")
+    c2.metric("系統總氮量", f"{total_N:.2f} kg")
     
-    # 陳教授專業診斷
     st.subheader("👨‍🏫 陳教授系統診斷：")
-    if efficiency >= 90:
-        st.success("「極佳的系統操作！物質平衡、含水率與溫度皆控制在微生物代謝動力學的最佳區間，轉化速率達到峰值。」")
-    elif efficiency >= 70:
-        st.info("「運作正常，但系統仍有優化空間。建議微調水分與通氣狀況，以提升對應基質的降解反應常數。」")
+    if 25 <= cn_ratio <= 35:
+        st.success("「完美的物質平衡！系統已達成高效降解的黃金比例，落葉的碳與廚餘的氮完美協同。」")
+    elif cn_ratio < 25:
+        st.warning("「氮素過剩！廚餘的高濃度氮素正在衝擊微生物系統，請增加落葉投入量以提高碳儲備。」")
     else:
-        st.error("「系統應力警示！目前的操作參數已進入微生物代謝受限區（動力學抑制）。請依據工程準則檢視水分是否導致空隙阻塞，或溫度是否導致酵素失活。」")
+        st.info("「碳庫過剩，系統進入維護模式。雖然穩定但效率偏低，微生物需要更多氮素來加速代謝。」")
 
 st.markdown("---")
 st.caption("© 2026 陳教授 - 環境科學與資源循環研究室")
